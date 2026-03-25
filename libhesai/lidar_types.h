@@ -3,33 +3,33 @@ Copyright (C) 2023 Hesai Technology Co., Ltd.
 Copyright (C) 2023 Original Authors
 All rights reserved.
 
-All code in this repository is released under the terms of the following Modified BSD License. 
-Redistribution and use in source and binary forms, with or without modification, are permitted 
+All code in this repository is released under the terms of the following Modified BSD License.
+Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and 
+* Redistributions of source code must retain the above copyright notice, this list of conditions and
   the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and 
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
   the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or 
+* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
   promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED 
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************/
 
 /*
  * File:       lidar_type.h
  * Author:     Zhang Yu <zhangyu@hesaitech.com>
- * Description: 
+ * Description:
  */
 
 #ifndef LIDAR_TYPES_H_
@@ -58,69 +58,70 @@ namespace lidar
 #pragma pack(push, 1)
 struct LidarPointXYZI
 {
-    float x; 
-    float y;             
-    float z;             
-    uint8_t intensity;     
+    float x;
+    float y;
+    float z;
+    uint8_t intensity;
 };
 
 struct LidarPointXYZIRT
 {
-    float x; 
-    float y;             
-    float z;             
-    uint8_t intensity;  
+    float x;
+    float y;
+    float z;
+    uint8_t intensity;
     uint16_t ring;
-    double timestamp;  
+    double timestamp;
+    float range;
 };
 
 struct LidarPointXYZICRT
 {
-    float x; 
-    float y;             
-    float z;             
-    uint8_t intensity;  
-    uint8_t confidence;  
+    float x;
+    float y;
+    float z;
+    uint8_t intensity;
+    uint8_t confidence;
     uint16_t ring;
-    double timestamp;  
+    double timestamp;
 };
 
 struct LidarPointXYZICRTT
 {
-    float x; 
-    float y;             
-    float z;             
-    uint8_t intensity;  
-    uint8_t confidence;  
+    float x;
+    float y;
+    float z;
+    uint8_t intensity;
+    uint8_t confidence;
     uint16_t ring;
-    uint64_t timeSecond;  
-    uint32_t timeNanosecond;  
+    uint64_t timeSecond;
+    uint32_t timeNanosecond;
 };
 
 struct LidarPointXYZICWERT
 {
-    float x; 
-    float y;             
-    float z;             
-    uint8_t intensity;  
-    uint8_t confidence;  
+    float x;
+    float y;
+    float z;
+    uint8_t intensity;
+    uint8_t confidence;
     uint8_t weightFactor;
     uint8_t envLight;
     uint16_t ring;
-    double timestamp;  
+    double timestamp;
 };
 
 struct LidarPointRTHI
 {
-    int theta; 
-    int phi;               
-    int radius;            
-    int intensity;         
+    int theta;
+    int phi;
+    int radius;
+    int intensity;
 };
 #pragma pack(pop)
 
 struct LidarImuData {
-  double timestamp; 
+  double timestamp;
   double imu_accel_x;
   double imu_accel_y;
   double imu_accel_z;
@@ -150,7 +151,7 @@ struct LidarImuData {
 };
 
 struct FrameDecodeParam {
-  bool pcap_time_synchronization; 
+  bool pcap_time_synchronization;
   bool firetimes_flag;
   bool dcf_flag;
   bool distance_correction_flag;
@@ -326,17 +327,17 @@ struct FrameDecodeParam {
       int high = std::stoi(range_part.substr(comma + 1, bracket_close - comma - 1));
       ranges.emplace_back(low, high);
     }
-    
+
     std::string ranges_info = "";
     //遍历打印channel_fov_filter
     for (const auto& range : ranges) {
       ranges_info += "[" + std::to_string(range.first) + ", " + std::to_string(range.second) + "] ";
     }
     LogInfo(ranges_info.c_str());
-    
+
     return 0;
   }
-  int IsMultiFrameFrequency() const { 
+  int IsMultiFrameFrequency() const {
     if (frame_frequency > 0 && frame_frequency < default_frame_frequency) {
       if (fmodf(default_frame_frequency, frame_frequency) <= 0.0000001) {
         return 1;
@@ -361,7 +362,7 @@ class LidarDecodedFrame
         packet_num = 0;
         frame_index = 0;
         block_num = 0;
-        laser_num = 0; 
+        laser_num = 0;
         channel_num = 0;
         per_points_num = 0;
         distance_unit = 0.0;
@@ -454,7 +455,7 @@ class LidarDecodedFrame
       multi_frame_end_timestamp = 0;
       multi_frame_index++;
     }
-    uint8_t* total_memory = nullptr; 
+    uint8_t* total_memory = nullptr;
     uint32_t maxPacketPerFrame;
     uint32_t maxPointPerPacket;
     // configure
@@ -464,7 +465,7 @@ class LidarDecodedFrame
     int16_t lidar_state;
     int16_t work_mode;
     uint16_t return_mode;
-    uint32_t packet_num; 
+    uint32_t packet_num;
     uint32_t* valid_points = nullptr;
     int frame_index;
     uint32_t points_num;
@@ -473,12 +474,12 @@ class LidarDecodedFrame
     std::string software_version = "xx.xx.xx";
     std::string hardware_version = "xx.xx.xx";
     // package parameter
-    PacketDecodeData* packetData = nullptr; 
+    PacketDecodeData* packetData = nullptr;
     FunctionSafety* funcSafety = nullptr;
     uint16_t block_num;
     uint16_t laser_num;  // channel number in point cloud
     uint16_t channel_num; // real channel number, when != 0, mean useful channel number
-    uint32_t per_points_num; 
+    uint32_t per_points_num;
     uint8_t reserved[4];
     double distance_unit;
     bool scan_complete;
@@ -505,5 +506,5 @@ class LidarDecodedFrame
 }  // namespace lidar
 }  // namespace hesai
 
- 
+
 #endif // LIDAR_TYPES_H_

@@ -3,26 +3,26 @@ Copyright (C) 2023 Hesai Technology Co., Ltd.
 Copyright (C) 2023 Original Authors
 All rights reserved.
 
-All code in this repository is released under the terms of the following Modified BSD License. 
-Redistribution and use in source and binary forms, with or without modification, are permitted 
+All code in this repository is released under the terms of the following Modified BSD License.
+Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and 
+* Redistributions of source code must retain the above copyright notice, this list of conditions and
   the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and 
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
   the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or 
+* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
   promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED 
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************/
 #ifndef Udp4_7_PARSER_GPU_H_
@@ -34,7 +34,7 @@ namespace hesai
 namespace lidar
 {
 
-int compute_4_7_cuda(uint8_t* point_cloud_cu_, CudaPointXYZAER* points_cu_, uint32_t point_cloud_size, const ATX::ATXCorrectionFloat* ATX_correction_cu_, 
+int compute_4_7_cuda(uint8_t* point_cloud_cu_, CudaPointXYZAER* points_cu_, uint32_t point_cloud_size, const ATX::ATXCorrectionFloat* ATX_correction_cu_,
     const ATX::ATXFiretimesFloat* ATX_firetimes_cu, const FrameDecodeParam* fParam, uint32_t packet_num, uint16_t block_num, uint16_t channel_num);
 
 // you can compute xyzi of points using the ComputeXYZI fuction, which uses gpu to compute
@@ -46,7 +46,7 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
   ATX::ATXFiretimesFloat* ATX_firetimes_cu;
   const ATX::ATXFiretimes* ATX_firetimes_ptr_;
  public:
-  Udp4_7ParserGpu(uint16_t maxPacket, uint16_t maxPoint) 
+  Udp4_7ParserGpu(uint16_t maxPacket, uint16_t maxPoint)
      : GeneralParserGpu<T_Point>(maxPacket, maxPoint) {
     cudaSafeMalloc((void**)&ATX_correction_cu_, sizeof(ATX::ATXCorrectionFloat));
     cudaSafeMalloc((void**)&ATX_firetimes_cu, sizeof(ATX::ATXFiretimesFloat));
@@ -83,11 +83,11 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
 
   // compute xyzi of points from decoded packet， use gpu device
   virtual int ComputeXYZI(LidarDecodedFrame<T_Point> &frame) {
-    if (!*this->get_correction_file_) return int(ReturnCode::CorrectionsUnloaded);  
+    if (!*this->get_correction_file_) return int(ReturnCode::CorrectionsUnloaded);
     if (!this->init_suc_flag_) return int(ReturnCode::CudaInitError);
     this->reMalloc(frame.maxPacketPerFrame, frame.maxPointPerPacket, frame.point_cloud_size);
     cudaSafeCall(cudaMemcpy(this->point_cloud_cu_, frame.point_cloud_raw_data,
-                            frame.point_cloud_size * frame.packet_num, 
+                            frame.point_cloud_size * frame.packet_num,
                             cudaMemcpyHostToDevice), ReturnCode::CudaMemcpyHostToDeviceError);
     this->updateCorrectionFile();
     this->updateFiretimeFile();
@@ -98,7 +98,7 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
     if (ret != 0) return ret;
 
     cudaSafeCall(cudaMemcpy(this->points_, this->points_cu_,
-                            frame.per_points_num * frame.packet_num * sizeof(CudaPointXYZAER), 
+                            frame.per_points_num * frame.packet_num * sizeof(CudaPointXYZAER),
                             cudaMemcpyDeviceToHost), ReturnCode::CudaMemcpyDeviceToHostError);
     for (uint32_t i = 0; i < frame.packet_num; i++) {
       auto &packetData = frame.packetData[i];
@@ -120,11 +120,11 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
             continue;
           }
           int point_index_rerank = point_index + point_num;
-          float azi_ = point.azimuthCalib; 
-          float elev_ = point.elevationCalib; 
+          float azi_ = point.azimuthCalib;
+          float elev_ = point.elevationCalib;
           GeneralParserGpu<T_Point>::DoRemake(azi_, elev_, frame.fParam.remake_config, point_index_rerank);
-          if(point_index_rerank >= 0) { 
-            auto& ptinfo = frame.points[point_index_rerank]; 
+          if(point_index_rerank >= 0) {
+            auto& ptinfo = frame.points[point_index_rerank];
             set_x(ptinfo, point.x);
             set_y(ptinfo, point.y);
             set_z(ptinfo, point.z);
@@ -132,6 +132,7 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
             set_intensity(ptinfo, point.reserved[0]);
             set_timestamp(ptinfo, double(packetData.t.sensor_timestamp) / kMicrosecondToSecond);
             set_confidence(ptinfo, point.reserved[1]);
+            // set_range(ptinfo, distance);
 
             point_num++;
           }
@@ -140,7 +141,7 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
       frame.valid_points[i] = point_num;
     }
     return 0;
-  } 
+  }
 };
 }
 }

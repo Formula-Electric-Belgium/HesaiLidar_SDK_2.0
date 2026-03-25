@@ -1,3 +1,6 @@
+# Generate a compilation database so clangd can find headers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 cmake_minimum_required(VERSION 3.8.11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -38,17 +41,17 @@ add_subdirectory(libhesai)
 add_library(hesai_sdk_lib
 	driver/hesai_lidar_sdk.cc
 	)
-target_link_libraries(hesai_sdk_lib PUBLIC 
+target_link_libraries(hesai_sdk_lib PUBLIC
 					lidar_lib
 					${OTHER_LIB})
-set_target_properties(hesai_sdk_lib 
+set_target_properties(hesai_sdk_lib
 	PROPERTIES CXX_STANDARD_REQUIRED TRUE CXX_STANDARD 14)
-target_include_directories(hesai_sdk_lib PUBLIC   
+target_include_directories(hesai_sdk_lib PUBLIC
     ${OTHER_INCLUDE_DIRS}
 	driver
 	algorithm
 	./
-) 
+)
 
 
 if(FIND_CUDA)

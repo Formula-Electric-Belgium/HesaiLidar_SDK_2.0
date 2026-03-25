@@ -3,26 +3,26 @@ Copyright (C) 2023 Hesai Technology Co., Ltd.
 Copyright (C) 2023 Original Authors
 All rights reserved.
 
-All code in this repository is released under the terms of the following Modified BSD License. 
-Redistribution and use in source and binary forms, with or without modification, are permitted 
+All code in this repository is released under the terms of the following Modified BSD License.
+Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and 
+* Redistributions of source code must retain the above copyright notice, this list of conditions and
   the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and 
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
   the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or 
+* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
   promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED 
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************/
 
@@ -62,7 +62,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace hesai
 {
 namespace lidar
-{  
+{
 
 DEFINE_MEMBER_CHECKER(intensity)
 DEFINE_MEMBER_CHECKER(ring)
@@ -72,15 +72,17 @@ DEFINE_MEMBER_CHECKER(timeSecond)
 DEFINE_MEMBER_CHECKER(timeNanosecond)
 DEFINE_MEMBER_CHECKER(weightFactor)
 DEFINE_MEMBER_CHECKER(envLight)
+DEFINE_MEMBER_CHECKER(range)
 
-DEFINE_SET_GET(intensity, uint8_t)  
-DEFINE_SET_GET(ring, uint16_t)  
-DEFINE_SET_GET(timestamp, double)  
-DEFINE_SET_GET(timeSecond, uint64_t)  
+DEFINE_SET_GET(intensity, uint8_t)
+DEFINE_SET_GET(ring, uint16_t)
+DEFINE_SET_GET(timestamp, double)
+DEFINE_SET_GET(timeSecond, uint64_t)
 DEFINE_SET_GET(timeNanosecond, uint32_t)
-DEFINE_SET_GET(confidence, uint8_t)  
+DEFINE_SET_GET(confidence, uint8_t)
 DEFINE_SET_GET(weightFactor, uint8_t)
 DEFINE_SET_GET(envLight, uint8_t)
+DEFINE_SET_GET(range, float)
 
 
 
@@ -152,9 +154,9 @@ struct CorrectionData {
   CorrectionData() {
     memset(elevation, 0, sizeof(float) * DEFAULT_MAX_LASER_NUM);
     memset(azimuth, 0, sizeof(float) * DEFAULT_MAX_LASER_NUM);
-    for (int i = 0; i < DEFAULT_MAX_LASER_NUM; ++i) {  
+    for (int i = 0; i < DEFAULT_MAX_LASER_NUM; ++i) {
         display[i] = true;
-    } 
+    }
     hash = "";
   }
 };
@@ -190,21 +192,21 @@ class GeneralParser {
   virtual void LoadFiretimesFile(const std::string& firetimes_path);
   virtual int LoadFiretimesString(const char *firetimes_string, int len);
   // load channel config file
-  virtual int LoadChannelConfigFile(const std::string channel_config_path);  
+  virtual int LoadChannelConfigFile(const std::string channel_config_path);
   // load dcf config file
   virtual int LoadDcfConfigFile(const std::string& dcf_path);
   virtual int LoadDcfConfigString(const char *dcf_string, int len);
   // get the pointer to the struct of the parsed correction file or firetimes file
   virtual void* getStruct(const int type);
-  // get display 
+  // get display
   virtual int getDisplay(bool **);
   // get/set correction/firetimes file loading flag
   bool isSetCorrectionSucc() { return get_correction_file_; }
   bool isSetFiretimeSucc() { return get_firetime_file_; }
 
   // covert a origin udp packet to decoded data, and pass the decoded data to a frame struct to reduce memory copy
-  virtual int DecodePacket(LidarDecodedFrame<T_Point> &frame, const UdpPacket& udpPacket, const int packet_index = -1); 
-  // xyzi of points after computed is puted in frame  
+  virtual int DecodePacket(LidarDecodedFrame<T_Point> &frame, const UdpPacket& udpPacket, const int packet_index = -1);
+  // xyzi of points after computed is puted in frame
   virtual int ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32_t packet_index);
   // parse the detailed content of the fault message
   virtual int ParserFaultMessage(UdpPacket& udp_packet, FaultMessageInfo &fault_message_info);
@@ -233,7 +235,7 @@ class GeneralParser {
   // crc
   void CRCInit();
   uint32_t CRCCalc(const uint8_t *bytes, int len, int zeros_num);
-  // remake 
+  // remake
   void setRemakeDefaultConfig(LidarDecodedFrame<T_Point> &frame);
   void DoRemake(int azi, int elev, const RemakeConfig& rq, int& point_idx);
   // update right memory space

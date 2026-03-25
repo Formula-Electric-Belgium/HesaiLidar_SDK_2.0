@@ -3,26 +3,26 @@ Copyright (C) 2023 Hesai Technology Co., Ltd.
 Copyright (C) 2023 Original Authors
 All rights reserved.
 
-All code in this repository is released under the terms of the following Modified BSD License. 
-Redistribution and use in source and binary forms, with or without modification, are permitted 
+All code in this repository is released under the terms of the following Modified BSD License.
+Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and 
+* Redistributions of source code must retain the above copyright notice, this list of conditions and
   the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and 
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
   the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or 
+* Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
   promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED 
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************/
 #include "udp4_7_parser.h"
@@ -196,7 +196,7 @@ void Udp4_7Parser<T_Point>::LoadFiretimesFile(const std::string& firetimes_path)
         type = 2; //  .csv
       } else {
         type = 0; //  wrong
-      }   
+      }
     }
 
     if (type == 0) {
@@ -208,7 +208,7 @@ void Udp4_7Parser<T_Point>::LoadFiretimesFile(const std::string& firetimes_path)
       if (inFile.is_open()) {
         std::string lineStr;
         //skip first line
-        std::getline(inFile, lineStr); 
+        std::getline(inFile, lineStr);
         while (getline(inFile, lineStr)) {
           std::stringstream ss(lineStr);
           std::string index, deltTime1, deltTime2;
@@ -228,7 +228,7 @@ void Udp4_7Parser<T_Point>::LoadFiretimesFile(const std::string& firetimes_path)
       } else {
         throw std::invalid_argument("Open firetime file failed");
       }
-    } 
+    }
     else if (type == 1) {
       std::ifstream fin(firetimes_path, std::ios::binary);
       if (fin.is_open()) {
@@ -284,11 +284,11 @@ int Udp4_7Parser<T_Point>::LoadFiretimesString(const char *firetimes_string, int
           }
           memcpy((void *)&m_ATX_firetimes.raw_even_firetime_correction_, p,
                  sizeof(uint16_t) * m_ATX_firetimes.channel_number);
-          p += sizeof(uint16_t) * m_ATX_firetimes.channel_number;       
-          memcpy((void *)&m_ATX_firetimes.raw_odd_firetime_correction_, p,
-                 sizeof(uint16_t) * m_ATX_firetimes.channel_number);       
           p += sizeof(uint16_t) * m_ATX_firetimes.channel_number;
-          memcpy((void*)&m_ATX_firetimes.SHA_value, p, 32);          
+          memcpy((void *)&m_ATX_firetimes.raw_odd_firetime_correction_, p,
+                 sizeof(uint16_t) * m_ATX_firetimes.channel_number);
+          p += sizeof(uint16_t) * m_ATX_firetimes.channel_number;
+          memcpy((void*)&m_ATX_firetimes.SHA_value, p, 32);
         } break;
         default:
           throw std::invalid_argument("min_version is wrong!");
@@ -344,7 +344,7 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
   const HS_LIDAR_HEADER_ST_V7 *pHeader =
       reinterpret_cast<const HS_LIDAR_HEADER_ST_V7 *>(
           data + sizeof(HS_LIDAR_PRE_HEADER));
-  
+
   const HS_LIDAR_TAIL_ST_V7 *pTail =
       reinterpret_cast<const HS_LIDAR_TAIL_ST_V7 *>(
           (const unsigned char *)pHeader + sizeof(HS_LIDAR_HEADER_ST_V7) +
@@ -381,7 +381,7 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
       float raw_elevation = 0;
       float distance = static_cast<float>(pChnUnit->GetDistance() * frame.distance_unit);
       if (this->get_firetime_file_ && frame.fParam.firetimes_flag) {
-        raw_azimuth += ((frameID % 2 == 0) ? m_ATX_firetimes.floatCorr.even_firetime_correction_[channel_index] : 
+        raw_azimuth += ((frameID % 2 == 0) ? m_ATX_firetimes.floatCorr.even_firetime_correction_[channel_index] :
                           - m_ATX_firetimes.floatCorr.odd_firetime_correction_[channel_index]) * (abs(static_cast<int16_t>(pTail->GetMotorSpeed())) * 1E-9 / 8);
       }
       if (this->get_correction_file_) {
@@ -389,12 +389,12 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
           raw_azimuth += m_ATX_corrections.floatCorr.azimuth[channel_index];
         }
         else if (m_ATX_corrections.floatCorr.min_version == 2 || m_ATX_corrections.floatCorr.min_version == 3) {
-          raw_azimuth += ((frameID % 2 == 0) ? m_ATX_corrections.floatCorr.azimuth_even[channel_index] : 
+          raw_azimuth += ((frameID % 2 == 0) ? m_ATX_corrections.floatCorr.azimuth_even[channel_index] :
                             m_ATX_corrections.floatCorr.azimuth_odd[channel_index]);
         }
         if(m_ATX_corrections.floatCorr.min_version == 1 || m_ATX_corrections.floatCorr.min_version == 2) {
           raw_elevation = m_ATX_corrections.floatCorr.elevation[channel_index];
-        } 
+        }
         else if (m_ATX_corrections.floatCorr.min_version == 3) {
           raw_elevation = m_ATX_corrections.floatCorr.elevation[channel_index] + m_ATX_corrections.floatCorr.ElevationAdjust(raw_azimuth);
         }
@@ -413,17 +413,18 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
       float z = distance * this->sin_all_angle_[(elevation)];
       this->TransformPoint(x, y, z, frame.fParam.transform);
 
-      int point_index_rerank = point_index + point_num; 
-      GeneralParser<T_Point>::DoRemake(azimuth, elevation, frame.fParam.remake_config, point_index_rerank); 
-      if(point_index_rerank >= 0) { 
-        auto& ptinfo = frame.points[point_index_rerank]; 
-        set_x(ptinfo, x); 
-        set_y(ptinfo, y); 
-        set_z(ptinfo, z); 
-        set_ring(ptinfo, channel_index); 
-        set_intensity(ptinfo, pChnUnit->GetReflectivity());  
+      int point_index_rerank = point_index + point_num;
+      GeneralParser<T_Point>::DoRemake(azimuth, elevation, frame.fParam.remake_config, point_index_rerank);
+      if(point_index_rerank >= 0) {
+        auto& ptinfo = frame.points[point_index_rerank];
+        set_x(ptinfo, x);
+        set_y(ptinfo, y);
+        set_z(ptinfo, z);
+        set_ring(ptinfo, channel_index);
+        set_intensity(ptinfo, pChnUnit->GetReflectivity());
         set_timestamp(ptinfo, double(packetData.t.sensor_timestamp) / kMicrosecondToSecond);
         set_confidence(ptinfo, pChnUnit->GetConfidenceLevel());
+        set_range(ptinfo, distance);
 
         point_num++;
       }
@@ -448,7 +449,7 @@ int Udp4_7Parser<T_Point>::DecodePacket(LidarDecodedFrame<T_Point> &frame, const
   const HS_LIDAR_HEADER_ST_V7 *pHeader =
       reinterpret_cast<const HS_LIDAR_HEADER_ST_V7 *>(
           &(udpPacket.buffer[0]) + sizeof(HS_LIDAR_PRE_HEADER));
-  
+
   const HS_LIDAR_TAIL_ST_V7 *pTail =
       reinterpret_cast<const HS_LIDAR_TAIL_ST_V7 *>(
           (const unsigned char *)pHeader + sizeof(HS_LIDAR_HEADER_ST_V7) +
@@ -457,7 +458,7 @@ int Udp4_7Parser<T_Point>::DecodePacket(LidarDecodedFrame<T_Point> &frame, const
            sizeof(HS_LIDAR_BODY_CHN_NNIT_ST_V7) * pHeader->GetLaserNum()) *
               pHeader->GetBlockNum() +
           sizeof(HS_LIDAR_BODY_CRC_ST_V7));
-  
+
   if (frame.frame_init_ == false) {
     frame.block_num = pHeader->GetBlockNum();
     frame.laser_num = pHeader->GetLaserNum();
@@ -500,7 +501,7 @@ int Udp4_7Parser<T_Point>::DecodePacket(LidarDecodedFrame<T_Point> &frame, const
     this->CalPktLoss(pTailSeqNum->GetSeqNum(), frame.fParam);
   }
   this->CalPktTimeLoss(pTail->GetMicroLidarTimeU64(this->last_utc_time), frame.fParam);
-  // const HS_LIDAR_E2E_HEADER_ST_V7 *pE2EHeader = 
+  // const HS_LIDAR_E2E_HEADER_ST_V7 *pE2EHeader =
   //     reinterpret_cast<const HS_LIDAR_E2E_HEADER_ST_V7 *>(
   //           (const unsigned char *)pHeader + sizeof(HS_LIDAR_HEADER_ST_V7) +
   //           (sizeof(HS_LIDAR_BODY_AZIMUTH_ST_V7) +
@@ -516,10 +517,10 @@ int Udp4_7Parser<T_Point>::DecodePacket(LidarDecodedFrame<T_Point> &frame, const
     frame.packetData[packet_index_use].t.sensor_timestamp = pTail->GetMicroLidarTimeU64(this->last_utc_time);
   } else {
     frame.packetData[packet_index_use].t.sensor_timestamp = udpPacket.recv_timestamp;
-  }   
+  }
   if (frame.frame_start_timestamp == 0) frame.frame_start_timestamp = double(frame.packetData[packet_index_use].t.sensor_timestamp) / kMicrosecondToSecond;
   frame.frame_end_timestamp = double(frame.packetData[packet_index_use].t.sensor_timestamp) / kMicrosecondToSecond;
-  
+
 
   auto packet_size = udpPacket.packet_len;
   if (this->last_max_packet_num_ != frame.maxPacketPerFrame) {
@@ -540,9 +541,8 @@ int Udp4_7Parser<T_Point>::DecodePacket(LidarDecodedFrame<T_Point> &frame, const
 
 template<typename T_Point>
 int Udp4_7Parser<T_Point>::ParserFaultMessage(UdpPacket& udp_packet, FaultMessageInfo &fault_message_info) {
-  FaultMessageVersion4_7 *fault_message_ptr =  
+  FaultMessageVersion4_7 *fault_message_ptr =
       reinterpret_cast< FaultMessageVersion4_7*> (&(udp_packet.buffer[0]));
   fault_message_ptr->ParserFaultMessage(fault_message_info, this->last_utc_time);
   return 0;
 }
-
