@@ -72,6 +72,7 @@ struct LidarPointXYZIRT
     uint8_t intensity;  
     uint16_t ring;
     double timestamp;  
+    float range;
 };
 
 struct LidarPointXYZICRT

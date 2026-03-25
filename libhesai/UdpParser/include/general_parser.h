@@ -77,6 +77,7 @@ DEFINE_MEMBER_CHECKER(elevationCalib)
 DEFINE_MEMBER_CHECKER(distance)
 DEFINE_MEMBER_CHECKER(noiseLevel)
 DEFINE_MEMBER_CHECKER(dirtyLevel)
+DEFINE_MEMBER_CHECKER(range)
 
 DEFINE_SET_GET(intensity, uint8_t)  
 DEFINE_SET_GET(ring, uint16_t)  
@@ -92,6 +93,7 @@ DEFINE_SET_GET(elevation, float)
 DEFINE_SET_GET(distance, float)
 DEFINE_SET_GET(noiseLevel, uint8_t)
 DEFINE_SET_GET(dirtyLevel, uint8_t)
+DEFINE_SET_GET(range, float)
 
 // elevationCalib
 template <typename T_Point>                                                                                          

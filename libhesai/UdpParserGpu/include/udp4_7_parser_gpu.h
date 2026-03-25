@@ -137,6 +137,7 @@ class Udp4_7ParserGpu: public GeneralParserGpu<T_Point>{
             set_elevation(ptinfo, ATX_correction_ptr->floatCorr.elevation[channel_index]);
             set_elevationCalib(ptinfo, elev_); 
             set_distance(ptinfo, point.distance); 
+            // set_range(ptinfo, distance);
 
             point_num++;
           }
