@@ -73,6 +73,7 @@ DEFINE_MEMBER_CHECKER(timeNanosecond)
 DEFINE_MEMBER_CHECKER(weightFactor)
 DEFINE_MEMBER_CHECKER(envLight)
 DEFINE_MEMBER_CHECKER(range)
+DEFINE_MEMBER_CHECKER(azimuth)
 
 DEFINE_SET_GET(intensity, uint8_t)
 DEFINE_SET_GET(ring, uint16_t)
@@ -83,6 +84,7 @@ DEFINE_SET_GET(confidence, uint8_t)
 DEFINE_SET_GET(weightFactor, uint8_t)
 DEFINE_SET_GET(envLight, uint8_t)
 DEFINE_SET_GET(range, float)
+DEFINE_SET_GET(azimuth, uint16_t)
 
 
 
