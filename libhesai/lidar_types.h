@@ -73,7 +73,7 @@ struct LidarPointXYZIRT
     uint16_t ring;
     double timestamp;
     float range;
-    uint16_t azimuth;
+    int azimuth;
 };
 
 struct LidarPointXYZICRT
