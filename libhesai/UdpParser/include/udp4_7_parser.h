@@ -468,7 +468,7 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
         set_elevationCalib_lazy(ptinfo, [elevation]() { return static_cast<float>(elevation) / kAllFineResolutionFloat; }); 
         set_distance(ptinfo, distance); 
         set_range(ptinfo, distance);
-        set_azimuth(ptinfo, raw_azimuth);
+        set_azimuth(ptinfo, azimuth);
 
         point_num++;
       }
