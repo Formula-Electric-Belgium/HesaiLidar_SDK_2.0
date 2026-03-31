@@ -84,7 +84,7 @@ DEFINE_SET_GET(confidence, uint8_t)
 DEFINE_SET_GET(weightFactor, uint8_t)
 DEFINE_SET_GET(envLight, uint8_t)
 DEFINE_SET_GET(range, float)
-DEFINE_SET_GET(azimuth, int)
+DEFINE_SET_GET(azimuth, float)
 
 
 

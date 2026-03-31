@@ -425,7 +425,7 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
         set_timestamp(ptinfo, double(packetData.t.sensor_timestamp) / kMicrosecondToSecond);
         set_confidence(ptinfo, pChnUnit->GetConfidenceLevel());
         set_range(ptinfo, distance);
-        set_azimuth(ptinfo, azimuth);
+        set_azimuth(ptinfo, raw_azimuth * (M_PI / 180.));
 
         point_num++;
       }
