@@ -357,6 +357,10 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
   int point_index = packet_index * frame.per_points_num;
   int point_num = 0;
   auto& packetData = frame.packetData[packet_index];
+  const HS_LIDAR_BODY_AZIMUTH_ST_V7 *pFirstAzimuth =
+      reinterpret_cast<const HS_LIDAR_BODY_AZIMUTH_ST_V7 *>(
+          (const unsigned char *)pHeader + sizeof(HS_LIDAR_HEADER_ST_V7));
+  float first_block_azimuth = 1.f * pFirstAzimuth->GetAzimuth() / kFineResolutionFloat;
   for (int blockid = 0; blockid < frame.block_num; blockid++) {
     int current_block_echo_count = ((pHeader->GetEchoCount() > 0 && pHeader->GetEchoNum() > 0) ?
             ((pHeader->GetEchoCount() - 1 + blockid) % pHeader->GetEchoNum() + 1) : 0);
@@ -422,7 +426,22 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
         set_z(ptinfo, z);
         set_ring(ptinfo, channel_index);
         set_intensity(ptinfo, pChnUnit->GetReflectivity());
-        set_timestamp(ptinfo, double(packetData.t.sensor_timestamp) / kMicrosecondToSecond);
+        uint64_t point_time_ns = (uint64_t)packetData.t.sensor_timestamp * kMicrosecondToNanosecondInt;
+        if (pTail->GetMotorSpeed() != 0) {
+          double omega = abs(static_cast<int16_t>(pTail->GetMotorSpeed())) / 8.0;
+          double block_azimuth = 1.f * u32Azimuth / kFineResolutionFloat;
+          double delta_az = block_azimuth - first_block_azimuth;
+          if (delta_az > 0) {
+            point_time_ns += (uint64_t)(delta_az / omega * kNanosecondToSecondInt);
+          }
+        }
+        if (this->get_firetime_file_ && frame.fParam.firetimes_flag) {
+          int64_t firetime_ns = (frameID % 2 == 0)
+              ? (int64_t)m_ATX_firetimes.floatCorr.even_firetime_correction_[channel_index]
+              : -(int64_t)m_ATX_firetimes.floatCorr.odd_firetime_correction_[channel_index];
+          point_time_ns = (uint64_t)((int64_t)point_time_ns + firetime_ns);
+        }
+        set_timestamp(ptinfo, double(point_time_ns) / kNanosecondToSecondInt);
         set_confidence(ptinfo, pChnUnit->GetConfidenceLevel());
         set_range(ptinfo, distance);
         set_azimuth(ptinfo, raw_azimuth * (M_PI / 180.));
