@@ -26,6 +26,7 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF TH
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************/
 #include "udp4_7_parser.h"
+#include <cmath>
 
 using namespace hesai::lidar;
 template<typename T_Point>
@@ -357,10 +358,24 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
   int point_index = packet_index * frame.per_points_num;
   int point_num = 0;
   auto& packetData = frame.packetData[packet_index];
-  const HS_LIDAR_BODY_AZIMUTH_ST_V7 *pFirstAzimuth =
-      reinterpret_cast<const HS_LIDAR_BODY_AZIMUTH_ST_V7 *>(
-          (const unsigned char *)pHeader + sizeof(HS_LIDAR_HEADER_ST_V7));
-  float first_block_azimuth = 1.f * pFirstAzimuth->GetAzimuth() / kFineResolutionFloat;
+
+  // Hesai documented timing model (manual B.2/B.4):
+  //   t(m) = t0 + (m-1) * HRes / MotorSpeed   [MotorSpeed in deg/s]
+  //   t(m,n) = t(m) + Δt(n)                    [Δt(n): per-channel firetime file, always >= 0]
+  // t0 = packetData.t.sensor_timestamp, i.e. block 1's (blockid == 0) start
+  // time - block 1 gets zero offset, later blocks get a positive one.
+  // HRes = 0.08 deg for this unit. GetMotorSpeed() returns Hesai's raw
+  // register value, not deg/s; the 0.125 deg/s-per-raw-unit factor below is
+  // inferred from the existing azimuth correction formula just below
+  // (abs(motor_speed) * 1E-9 / 8 applied to a nanosecond firetime) - it is
+  // NOT independently confirmed from Hesai docs, so validate against real
+  // captures, especially near a sweep turnaround where speed is lowest.
+  // Also unverified: that blockid == 0 is always the first-fired block, even
+  // on odd (reverse-sweep) frames - check this against real odd-frame data.
+  constexpr float kHResDeg = 0.08f;
+  constexpr double kRawMotorSpeedToDegPerSec = 0.125;
+  const int16_t motor_speed_raw = static_cast<int16_t>(pTail->GetMotorSpeed());
+
   for (int blockid = 0; blockid < frame.block_num; blockid++) {
     int current_block_echo_count = ((pHeader->GetEchoCount() > 0 && pHeader->GetEchoNum() > 0) ?
             ((pHeader->GetEchoCount() - 1 + blockid) % pHeader->GetEchoNum() + 1) : 0);
@@ -374,6 +389,13 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
           sizeof(HS_LIDAR_BODY_CHN_NNIT_ST_V7) * pHeader->GetLaserNum()) * blockid);
 
     int32_t u32Azimuth = pAzimuth->GetAzimuth();
+
+    double block_time_offset_ns = 0.0;
+    if (motor_speed_raw != 0) {
+      double angular_rate_deg_per_s = std::fabs(static_cast<double>(motor_speed_raw)) * kRawMotorSpeedToDegPerSec;
+      block_time_offset_ns = (blockid * static_cast<double>(kHResDeg)) / angular_rate_deg_per_s * kNanosecondToSecondInt;
+    }
+
     const HS_LIDAR_BODY_CHN_NNIT_ST_V7 * pChnUnit = reinterpret_cast<const HS_LIDAR_BODY_CHN_NNIT_ST_V7 *>(
         (const unsigned char *)pAzimuth + sizeof(HS_LIDAR_BODY_AZIMUTH_ST_V7) + sizeof(HS_LIDAR_BODY_FINE_AZIMUTH_ST_V7));
     for (int channel_index = 0; channel_index < frame.laser_num; ++channel_index) {
@@ -426,20 +448,19 @@ int Udp4_7Parser<T_Point>::ComputeXYZI(LidarDecodedFrame<T_Point> &frame, uint32
         set_z(ptinfo, z);
         set_ring(ptinfo, channel_index);
         set_intensity(ptinfo, pChnUnit->GetReflectivity());
-        uint64_t point_time_ns = (uint64_t)packetData.t.sensor_timestamp * kMicrosecondToNanosecondInt;
-        if (pTail->GetMotorSpeed() != 0) {
-          double omega = abs(static_cast<int16_t>(pTail->GetMotorSpeed())) / 8.0;
-          double block_azimuth = 1.f * u32Azimuth / kFineResolutionFloat;
-          double delta_az = block_azimuth - first_block_azimuth;
-          if (delta_az > 0) {
-            point_time_ns += (uint64_t)(delta_az / omega * kNanosecondToSecondInt);
-          }
-        }
+        uint64_t point_time_ns = (uint64_t)packetData.t.sensor_timestamp * kMicrosecondToNanosecondInt
+                                  + (uint64_t)block_time_offset_ns;
         if (this->get_firetime_file_ && frame.fParam.firetimes_flag) {
-          int64_t firetime_ns = (frameID % 2 == 0)
-              ? (int64_t)m_ATX_firetimes.floatCorr.even_firetime_correction_[channel_index]
-              : -(int64_t)m_ATX_firetimes.floatCorr.odd_firetime_correction_[channel_index];
-          point_time_ns = (uint64_t)((int64_t)point_time_ns + firetime_ns);
+          // Correction file values are a per-channel fire delay in
+          // nanoseconds (see ATX_Firetime Correction File.csv), always >= 0
+          // - a laser only ever fires *after* the block's reference instant
+          // (t(m,n) = t(m) + Δt(n) per the Hesai manual). Unlike the azimuth
+          // correction above, there is no sign flip by frame parity here:
+          // elapsed time itself never goes negative.
+          uint64_t firetime_ns = (frameID % 2 == 0)
+              ? (uint64_t)m_ATX_firetimes.floatCorr.even_firetime_correction_[channel_index]
+              : (uint64_t)m_ATX_firetimes.floatCorr.odd_firetime_correction_[channel_index];
+          point_time_ns += firetime_ns;
         }
         set_timestamp(ptinfo, double(point_time_ns) / kNanosecondToSecondInt);
         set_confidence(ptinfo, pChnUnit->GetConfidenceLevel());
